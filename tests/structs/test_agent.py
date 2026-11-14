@@ -2900,6 +2900,14 @@ class TestIntegerLoopRequest:
             {"role": "user", "content": image},
             {"role": "user", "content": "Describe it"},
         ]
+        # Seeded turns get no id; the task and the answer still do.
+        rows = agent.short_memory.conversation_history[-4:]
+        assert ["message_id" in row for row in rows] == [
+            False,
+            False,
+            True,
+            True,
+        ]
 
     def test_no_loop_markers_are_sent(self, monkeypatch):
         agent = self._agent(max_loops=3)

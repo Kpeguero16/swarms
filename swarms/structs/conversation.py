@@ -434,6 +434,7 @@ class Conversation:
         content: Union[str, dict, list, Any],
         metadata: Optional[dict] = None,
         category: Optional[str] = None,
+        message_id: bool = True,
     ):
         """Add a message to the conversation history.
 
@@ -442,6 +443,7 @@ class Conversation:
             content (Union[str, dict, list]): The content of the message to be added.
             metadata (Optional[dict]): Optional metadata for the message.
             category (Optional[str]): Optional category for the message.
+            message_id (bool): Whether message_id_on gives this message an id.
         """
         # Base message with role and timestamp
         message = {
@@ -452,7 +454,7 @@ class Conversation:
         if self.time_enabled:
             message["timestamp"] = datetime.datetime.now().isoformat()
 
-        if self.message_id_on:
+        if self.message_id_on and message_id:
             message["message_id"] = str(uuid.uuid4())
 
         if category:
@@ -627,10 +629,12 @@ class Conversation:
             messages (List[Dict[str, Any]]): Messages shaped like
                 ``{"role": ..., "content": ...}``. Any other keys - ``name``,
                 ``tool_calls``, ``tool_call_id`` - are kept as metadata so a
-                tool exchange survives the round trip.
+                tool exchange survives the round trip. They get no
+                message_id: an id for each turn of every prior history
+                is most of the cost of a deep multi-agent flow.
 
         Returns:
-            list: The result of each :meth:`add`, in the order given.
+            list: The stored messages, in the order given.
         """
         added = []
         for message in messages:
@@ -649,12 +653,17 @@ class Conversation:
                 if key not in ("role", "content")
             }
             added.append(
-                self.add(
+                self.add_in_memory(
                     role=message["role"],
                     content=message.get("content"),
                     metadata=extra or None,
+                    message_id=False,
                 )
             )
+
+        if self.autosave:
+            self._autosave()
+
         return added
 
     def to_messages(
