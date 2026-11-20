@@ -18,7 +18,7 @@ WRITER = SimpleNamespace(agent_name="Writer")
 )
 def test_reject_duplicate_names(agents, allow_same_object, raises):
     expected = (
-        pytest.raises(ValueError, match="'Writer'. Swarm finds")
+        pytest.raises(ValueError, match="'Writer'.*Swarm finds")
         if raises
         else nullcontext()
     )

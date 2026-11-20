@@ -216,8 +216,8 @@ def reject_duplicate_names(
             allow_same_object and owners[name] is agent
         ):
             raise ValueError(
-                f"Two agents are named {name!r}. {structure} finds "
-                "its agents by name, so only one of them would be "
-                "used. Give each one its own name."
+                f"The name {name!r} appears more than once. "
+                f"{structure} finds its agents by name, so only one "
+                "of them would be used. Give each agent its own name."
             )
         owners[name] = agent
