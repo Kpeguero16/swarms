@@ -217,7 +217,7 @@ def reject_duplicate_names(
         ):
             raise ValueError(
                 f"The name {name!r} appears more than once. "
-                f"{structure} finds its agents by name, so only one "
-                "of them would be used. Give each agent its own name."
+                f"{structure} finds its agents by name, so it can't "
+                "tell them apart. Give each agent its own name."
             )
         owners[name] = agent
