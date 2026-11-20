@@ -10,6 +10,7 @@ from swarms.prompts.agent_acknowledgement_prompt import (
 from swarms.structs.agent import Agent
 from swarms.structs.agent_rearrange import AgentRearrange
 from swarms.structs.comms_channel import CommsChannel
+from swarms.structs.ma_utils import reject_duplicate_names
 from swarms.structs.usage_utils import total_usage
 from swarms.telemetry.otel import (
     ContextThreadPoolExecutor,
@@ -198,6 +199,8 @@ class SequentialWorkflow:
         if self.agents is None or len(self.agents) == 0:
             raise ValueError("Agents list cannot be None or empty")
 
+        reject_duplicate_names(self.agents, "SequentialWorkflow")
+
         if self.max_loops == 0:
             raise ValueError("max_loops cannot be 0")
 
@@ -227,7 +230,6 @@ class SequentialWorkflow:
         """
         if self.agents:
             agent_names = []
-            owners = {}
             for agent in self.agents:
                 try:
                     # Try to get agent_name, fallback to name if not available
@@ -235,16 +237,6 @@ class SequentialWorkflow:
                         getattr(agent, "agent_name", None)
                         or agent.name
                     )
-                    if (
-                        owners.setdefault(agent_name, agent)
-                        is not agent
-                    ):
-                        raise ValueError(
-                            f"Two different agents are named '{agent_name}'. "
-                            "SequentialWorkflow runs each step by name, so "
-                            "only the first of them would run. Give each "
-                            "one its own name."
-                        )
                     agent_names.append(agent_name)
                 except AttributeError:
                     logger.warning(

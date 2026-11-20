@@ -188,3 +188,36 @@ def create_agent_map(
         agent_map[name] = agent
 
     return agent_map
+
+
+def reject_duplicate_names(
+    agents: List[Any],
+    structure: str,
+    allow_same_object: bool = True,
+) -> None:
+    """Raise ValueError when two agents in a structure share a name.
+
+    Args:
+        agents: The agents, each named by agent_name or name.
+        structure: The structure's class name, for the message.
+        allow_same_object: Whether one agent may be listed twice.
+
+    Raises:
+        ValueError: If a name repeats, unless it is the same agent
+            listed again and allow_same_object is True.
+    """
+    owners: Dict[str, Any] = {}
+
+    for agent in agents:
+        name = getattr(agent, "agent_name", None) or getattr(
+            agent, "name", None
+        )
+        if name in owners and not (
+            allow_same_object and owners[name] is agent
+        ):
+            raise ValueError(
+                f"Two agents are named {name!r}. {structure} finds "
+                "its agents by name, so only one of them would be "
+                "used. Give each one its own name."
+            )
+        owners[name] = agent

@@ -415,6 +415,13 @@ def test_missing_api_key_raises():
             os.environ["OPENAI_API_KEY"] = saved
 
 
+def test_two_agents_with_one_name_are_rejected():
+    first, second = _minimal_agents()
+    second.agent_name = first.agent_name
+    with pytest.raises(ValueError, match="'Agent1'"):
+        MultiAgentRouter(agents=[first, second])
+
+
 def test_route_task_with_no_agents_raises():
     """Routing with an empty agent list must raise."""
     if not os.getenv("OPENAI_API_KEY"):
