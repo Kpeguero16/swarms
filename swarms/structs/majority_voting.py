@@ -13,6 +13,7 @@ from swarms.structs.comms_channel import (
     claim_agents,
 )
 from swarms.structs.conversation import Conversation
+from swarms.structs.ma_utils import reject_duplicate_names
 from swarms.utils.formatter import formatter
 from swarms.utils.history_output_formatter import (
     history_output_formatter,
@@ -188,16 +189,9 @@ class MajorityVoting:
         if self.max_loops <= 0:
             raise ValueError("max_loops must be greater than 0")
 
-        names = set()
-        for agent in self.agents:
-            if agent.agent_name in names:
-                raise ValueError(
-                    f"More than one voter is named '{agent.agent_name}'. "
-                    "MajorityVoting keys each vote by name, so one of "
-                    "their answers would be counted for all of them. Give "
-                    "each voter its own Agent instance and a unique name."
-                )
-            names.add(agent.agent_name)
+        reject_duplicate_names(
+            self.agents, "MajorityVoting", allow_same_object=False
+        )
 
         # Log the agents in a more formatted, readable way
         agent_list = "\n".join(

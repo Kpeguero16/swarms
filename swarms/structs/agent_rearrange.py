@@ -15,6 +15,7 @@ from swarms.structs.context_utils import (
 from swarms.structs.conversation import Conversation
 from swarms.structs.execution_utils import run_concurrently
 from swarms.structs.ma_blocks import find_agent_by_name
+from swarms.structs.ma_utils import reject_duplicate_names
 from swarms.structs.serialization import SerializableMixin
 from swarms.structs.usage_utils import total_usage
 from swarms.telemetry.otel import (
@@ -240,23 +241,14 @@ class AgentRearrange(SerializableMixin):
         if self.agents is None or len(self.agents) == 0:
             raise ValueError("Agents list cannot be None or empty")
 
-        owners = {}
-        for member in self.agents:
-            # Each nested swarm gets a new wrapper, so compare what was passed
-            source = (
-                member.swarm
-                if isinstance(member, _SwarmMember)
-                else member
-            )
-            if (
-                owners.setdefault(member.agent_name, source)
-                is not source
-            ):
-                raise ValueError(
-                    f"Two different agents are named '{member.agent_name}'. "
-                    "AgentRearrange runs each step by name, so only the "
-                    "first of them would run. Give each one its own name."
-                )
+        # Each nested swarm gets a new wrapper, so compare what was passed
+        reject_duplicate_names(
+            [
+                m.swarm if isinstance(m, _SwarmMember) else m
+                for m in self.agents
+            ],
+            "AgentRearrange",
+        )
 
         if self.max_loops == 0:
             raise ValueError("max_loops cannot be 0")
