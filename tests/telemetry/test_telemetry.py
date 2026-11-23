@@ -489,6 +489,9 @@ class TestHelpers:
             "refresh-token = abcd1234",
             "credentials:abcd1234",
             "Authorization='abcd1234'",
+            "ſecret=abcd1234",
+            "authorızation=abcd1234",
+            "credentİals : abcd1234",
         ):
             assert "abcd1234" not in otel._scrub(text)
 

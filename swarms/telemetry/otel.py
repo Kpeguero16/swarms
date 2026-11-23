@@ -276,8 +276,11 @@ def _scrub(text: str) -> str:
         lambda match: match.group(1) + REDACTED, text
     )
 
+    # re.IGNORECASE matches letters such as "ſ" to "s", which lower() leaves alone.
     lowered = text.lower()
-    if not any(word in lowered for word in _ASSIGNED_WORDS):
+    if text.isascii() and not any(
+        word in lowered for word in _ASSIGNED_WORDS
+    ):
         return text
     if not _ASSIGNED_HINT.search(text):
         return text
