@@ -74,6 +74,23 @@ _ASSIGNED = re.compile(
     re.IGNORECASE,
 )
 
+# Every _ASSIGNED match contains one of these words.
+_ASSIGNED_WORDS = (
+    "key",
+    "secret",
+    "passw",
+    "token",
+    "authorization",
+    "credential",
+)
+
+# Every _ASSIGNED match has this, and it is about three times cheaper to find.
+_ASSIGNED_HINT = re.compile(
+    r"(?:key|secret|passw(?:or)?d|token|authorization|credentials?)"
+    r"[\"']?\s*[:=]",
+    re.IGNORECASE,
+)
+
 # Environment variables whose values are always scrubbed from telemetry.
 _SECRET_ENV = re.compile(
     r"KEY$|TOKEN$|SECRET|PASSWORD|PASSWD|CREDENTIAL|_AUTH$",
@@ -258,6 +275,12 @@ def _scrub(text: str) -> str:
     text = _AUTH_SCHEME.sub(
         lambda match: match.group(1) + REDACTED, text
     )
+
+    lowered = text.lower()
+    if not any(word in lowered for word in _ASSIGNED_WORDS):
+        return text
+    if not _ASSIGNED_HINT.search(text):
+        return text
 
     return _ASSIGNED.sub(
         lambda match: match.group(1) + match.group(2) + REDACTED, text

@@ -481,6 +481,17 @@ class TestHelpers:
         assert out.endswith("…[truncated]")
         assert len(out) <= MAX_PAYLOAD_CHARS + len("…[truncated]")
 
+    def test_scrub_redacts_every_secret_named_assignment(self):
+        for text in (
+            "apiKey=abcd1234",
+            '"client_secret": "abcd1234"',
+            "PASSWD: abcd1234",
+            "refresh-token = abcd1234",
+            "credentials:abcd1234",
+            "Authorization='abcd1234'",
+        ):
+            assert "abcd1234" not in otel._scrub(text)
+
     def test_init_config_only_constructor_params(self):
         class Thing:
             def __init__(self, alpha=1, beta="b"):
